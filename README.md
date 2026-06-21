@@ -19,11 +19,31 @@ A full-stack, containerized web application designed for comprehensive inventory
 
 ## Project Structure
 
+```text
 inventory-order-management/
-├── backend/            # FastAPI application, SQLAlchemy models, routers, and tests
-├── frontend/           # React frontend application (Vite build system)
-├── docker-compose.yml  # Multi-container orchestration configuration
-└── docs/               # Additional documentation
+├── backend/
+│   ├── alembic/           # Database migration scripts
+│   ├── app/
+│   │   ├── core/          # Exception handling and core configurations
+│   │   ├── crud/          # Database operations (Create, Read, Update, Delete)
+│   │   ├── models/        # SQLAlchemy database models
+│   │   ├── routers/       # FastAPI route controllers
+│   │   ├── schemas/       # Pydantic schemas for data validation
+│   │   ├── config.py      # Environment configurations
+│   │   ├── database.py    # Database connection setup
+│   │   └── main.py        # FastAPI application entry point
+│   └── tests/             # Pytest suite
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # Reusable React components (UI elements)
+│   │   ├── context/       # Global state management
+│   │   ├── pages/         # Main application views (Dashboard, Products, Orders)
+│   │   ├── services/      # API communication logic (Axios calls)
+│   │   └── styles/        # CSS styling files
+│   └── package.json       # Frontend dependencies and scripts
+├── docker-compose.yml     # Multi-container orchestration configuration
+└── docs/                  # Additional documentation
+```
 
 ## Core Features and Business Logic
 
