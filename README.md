@@ -84,6 +84,7 @@ Frontend Setup:
 3. Copy the environment file: `cp .env.example .env`
 4. Update VITE_API_URL if your backend is running on a different port.
 5. Run the development server: `npm run dev`
+6. Access the Frontend Application: http://localhost:5173
 
 ## API Documentation
 
