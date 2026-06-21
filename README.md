@@ -1,157 +1,156 @@
-# Stockroom — Inventory & Order Management System
+# Inventory and Order Management System
 
-A full-stack inventory, customer, and order management system built with
-**FastAPI**, **React (Vite)**, and **PostgreSQL**, fully containerized with
-Docker and Docker Compose.
+## Overview
 
-## Tech stack
+A full-stack, containerized web application designed for comprehensive inventory, customer, and order management. The system is built to handle core business operations, including real-time stock tracking, automatic order total calculation, and strict inventory validation to prevent overselling.
 
-| Layer          | Technology                          |
-|----------------|--------------------------------------|
-| Frontend       | React 18 (Vite), React Router, Axios |
-| Backend        | Python, FastAPI, SQLAlchemy          |
-| Database       | PostgreSQL 16                        |
-| Migrations     | Alembic                              |
-| Containerization | Docker, Docker Compose             |
+## Technology Stack
 
-## Project structure
+- Frontend: React 18 (Vite), React Router, Axios
+- Backend: Python, FastAPI, SQLAlchemy, Alembic
+- Database: PostgreSQL 16
+- Containerization: Docker, Docker Compose
 
-```
+## Project Structure
+
 inventory-order-management/
-├── backend/        # FastAPI app, models, routers, crud, tests
-├── frontend/        # React (Vite) app
-├── docker-compose.yml
-└── docs/
-```
+├── backend/            # FastAPI application, SQLAlchemy models, routers, and tests
+├── frontend/           # React frontend application (Vite build system)
+├── docker-compose.yml  # Multi-container orchestration configuration
+└── docs/               # Additional documentation
 
-See inline comments in `docker-compose.yml` and each `Dockerfile` for details.
+## Core Features and Business Logic
 
-## Running locally with Docker Compose
+The application enforces the following strict business rules at the database and application layers:
 
-This is the recommended way to run the full stack — it starts Postgres,
-the backend, and the frontend together, wired to talk to each other.
+- Product Management: Supports full CRUD operations. SKUs are enforced as unique constraints.
+- Customer Management: Supports full CRUD operations. Email addresses are enforced as unique constraints.
+- Order Management: Handles order placement and cancellation.
+- Inventory Validation: Product stock cannot drop below zero. Orders are rejected immediately if any line item exceeds available inventory.
+- Automatic Deductions: Placing an order automatically deducts the respective product quantities from the inventory.
+- Automatic Calculations: Total order amounts are calculated server-side based on the current product price to prevent client-side spoofing.
+- Transactional Integrity: Order placement and stock deduction occur within a single database transaction to prevent data corruption during partial failures.
+- Restorations: Deleting or cancelling an order automatically restores the held stock back into the inventory.
 
-```bash
-# 1. Copy the root env file and adjust if needed (defaults work out of the box)
-cp .env.example .env
+## Prerequisites
 
-# 2. Build and start everything
-docker-compose up --build
+To run this project, ensure you have the following installed on your system:
+- Docker Desktop
+- Git
 
-# 3. Open the app
-# Frontend:        http://localhost:3000
-# Backend API:      http://localhost:8000
-# Interactive docs: http://localhost:8000/docs
-```
+To run the application manually without Docker, you will need:
+- Node.js (v18 or higher)
+- Python (v3.10 or higher)
+- A local instance of PostgreSQL
 
-Stop everything with `docker-compose down`. Add `-v` to also drop the
-Postgres volume (`docker-compose down -v`) if you want a clean database.
+## Running the Application (Recommended)
 
-## Running services individually (without Docker)
+The recommended approach to run the entire stack is via Docker Compose, which automatically builds the frontend, backend, and provisions the PostgreSQL database.
 
-**Backend**
-```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # edit DATABASE_URL to point at a local Postgres instance
-uvicorn app.main:app --reload
-```
+1. Navigate to the project root directory.
+2. Duplicate the environment template file:
+   cp .env.example .env
+   (On Windows Command Prompt or PowerShell, use: copy .env.example .env)
 
-**Frontend**
-```bash
-cd frontend
-npm install
-cp .env.example .env   # set VITE_API_URL=http://localhost:8000
-npm run dev
-```
+3. Build and start the containers:
+   docker compose up --build -d
 
-## Running the backend test suite
+4. Access the application:
+   - Frontend Application: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - Interactive API Documentation (Swagger): http://localhost:8000/docs
 
-```bash
-cd backend
-pip install -r requirements.txt
-pytest tests/ -v
-```
+To stop the application, run:
+   docker compose down
 
-Tests run against an isolated in-memory SQLite database, so no Postgres
-instance is required to run them.
+If you wish to stop the application and wipe the database completely, run:
+   docker compose down -v
 
-## Database migrations (Alembic)
+## Running Services Individually (Without Docker)
 
-The app auto-creates tables on startup as a development convenience, but
-Alembic is the correct path for any real schema change:
+Backend Setup:
+1. Navigate to the backend directory: `cd backend`
+2. Create and activate a virtual environment:
+   python -m venv .venv
+   source .venv/bin/activate (On Windows: .\.venv\Scripts\Activate.ps1)
+3. Install dependencies: `pip install -r requirements.txt`
+4. Copy the environment file: `cp .env.example .env`
+5. Update the DATABASE_URL in the .env file to point to your local PostgreSQL instance.
+6. Run the development server: `uvicorn app.main:app --reload`
 
-```bash
-cd backend
-alembic revision --autogenerate -m "describe your change"
-alembic upgrade head
-```
+Frontend Setup:
+1. Navigate to the frontend directory: `cd frontend`
+2. Install dependencies: `npm install`
+3. Copy the environment file: `cp .env.example .env`
+4. Update VITE_API_URL if your backend is running on a different port.
+5. Run the development server: `npm run dev`
 
-## API overview
+## API Documentation
 
-Full interactive documentation (Swagger UI) is auto-generated by FastAPI at
-`/docs` once the backend is running. Summary of endpoints:
+FastAPI automatically generates interactive API documentation. Once the backend is running, navigate to `/docs` (e.g., http://localhost:8000/docs) to view and test all available endpoints.
 
-| Resource  | Endpoints |
-|-----------|-----------|
-| Products  | `POST /products`, `GET /products`, `GET /products/{id}`, `PUT /products/{id}`, `DELETE /products/{id}` |
-| Customers | `POST /customers`, `GET /customers`, `GET /customers/{id}`, `DELETE /customers/{id}` |
-| Orders    | `POST /orders`, `GET /orders`, `GET /orders/{id}`, `DELETE /orders/{id}` |
-| Dashboard | `GET /dashboard/summary` |
+Key API Resources:
+- Products: /products
+- Customers: /customers
+- Orders: /orders
+- Dashboard: /dashboard/summary
 
-## Business rules implemented
+## Database Migrations
 
-- Product SKU is unique; duplicate SKUs return `409 Conflict`.
-- Customer email is unique; duplicate emails return `409 Conflict`.
-- Product stock cannot be negative (`422` on violation).
-- Orders are rejected with `422` if any line item exceeds available stock —
-  validated for *every* line before anything is written.
-- Placing an order automatically deducts stock and computes `total_amount`
-  server-side; the client never supplies a total.
-- Cancelling/deleting an order restores the stock it was holding.
-- All of the above happens inside a single DB transaction per request, so
-  stock and totals can't drift out of sync from a partial failure.
+The application uses Alembic for database migrations. While tables are created automatically on startup for local development convenience, proper migrations should be used for schema changes.
 
-## Environment variables
+1. Navigate to the backend directory.
+2. Generate a new migration script:
+   alembic revision --autogenerate -m "Description of your changes"
+3. Apply the migration to the database:
+   alembic upgrade head
 
-**Backend** (`backend/.env`, see `backend/.env.example`)
+## Testing
 
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `CORS_ORIGINS` | Comma-separated list of allowed frontend origins |
-| `ENVIRONMENT` | `development` / `production` |
+The backend test suite is written using pytest. Tests execute against an isolated in-memory SQLite database, so a running PostgreSQL instance is not required for testing.
 
-**Frontend** (`frontend/.env`, see `frontend/.env.example`)
+1. Navigate to the backend directory.
+2. Ensure dependencies are installed.
+3. Run the test suite:
+   pytest tests/ -v
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_API_URL` | Base URL of the backend API |
+## Environment Variables Configuration
 
-**Root** (`.env`, see `.env.example`) — consumed by `docker-compose.yml` to
-configure the Postgres container and pass build-time values to the other
-services.
+Root Level (.env):
+Used by docker-compose to configure the PostgreSQL container and pass values to the services.
+- POSTGRES_USER
+- POSTGRES_PASSWORD
+- POSTGRES_DB
+- CORS_ORIGINS
+- ENVIRONMENT
+- VITE_API_URL
 
-## Deployment
+Backend Level (backend/.env):
+- DATABASE_URL: PostgreSQL connection string.
+- CORS_ORIGINS: Comma-separated list of allowed frontend origins.
+- ENVIRONMENT: development or production.
 
-**Backend** — deploy to Render, Railway, or Fly.io using the `backend/Dockerfile`.
-Set `DATABASE_URL` (pointing at the platform's managed Postgres) and
-`CORS_ORIGINS` (pointing at your deployed frontend URL) as environment
-variables in the platform's dashboard.
+Frontend Level (frontend/.env):
+- VITE_API_URL: The base URL of the deployed backend API.
 
-**Frontend** — deploy to Vercel or Netlify. Build command: `npm run build`,
-output directory: `dist`. Set `VITE_API_URL` to your deployed backend URL.
+## Deployment Guide
 
-**Docker Hub** — push the backend image:
-```bash
-docker build -t <dockerhub-username>/inventory-backend:latest ./backend
-docker push <dockerhub-username>/inventory-backend:latest
-```
+Backend Deployment:
+The backend is designed to be deployed on platforms such as Render, Railway, or Fly.io using the provided Dockerfile.
+1. Provision a managed PostgreSQL database on your hosting provider.
+2. Deploy the backend repository.
+3. Set the `DATABASE_URL` environment variable to your production database URL.
+4. Set the `CORS_ORIGINS` environment variable to your future frontend deployment URL.
 
-## Submission checklist
+Frontend Deployment:
+The frontend is built using Vite and can be deployed as a static site to Vercel or Netlify.
+1. Set the build command to: `npm run build`
+2. Set the publish directory to: `dist`
+3. Set the `VITE_API_URL` environment variable to your deployed backend URL.
 
-- [ ] GitHub repository link
-- [ ] Docker Hub image link (backend)
-- [ ] Live frontend URL
-- [ ] Live backend URL
+## Submission Checklist
+
+- [ ] GitHub repository link containing frontend and backend code
+- [ ] Docker Hub backend image link
+- [ ] Live frontend deployment URL
+- [ ] Live backend API URL
