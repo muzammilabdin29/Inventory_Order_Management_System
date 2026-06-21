@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/build/
+npm-debug.log*
+
+# Env files (never commit real secrets)
+.env
+backend/.env
+frontend/.env
+
+# Docker
+*.log
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Alembic
+backend/alembic/versions/__pycache__/
